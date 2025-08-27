@@ -45,7 +45,44 @@ function App() {
     loadMockData()
   }, [])
 
-  const loadMockData = () => {
+  const loadMockData = async () => {
+    try {
+      console.log('🔄 Attempting to fetch data from backend...')
+      
+      // Try to fetch from backend first
+      const response = await fetch('http://localhost:8000/topology')
+      
+      if (response.ok) {
+        const backendData = await response.json()
+        console.log('✅ Successfully fetched data from backend:', backendData)
+        
+        // Use backend data if available
+        setClusterData({
+          gpus: backendData.gpus || [],
+          servers: backendData.servers || [],
+          connections: backendData.connections || []
+        })
+        
+        // Calculate metrics from backend data
+        const avgTemp = backendData.gpus?.length > 0 
+          ? Math.round(backendData.gpus.reduce((sum, gpu) => sum + (gpu.temperature || 0), 0) / backendData.gpus.length)
+          : 0
+        
+        setMetrics({
+          totalGpus: backendData.gpus?.length || 0,
+          activeConnections: backendData.connections?.length || 0,
+          avgTemperature: avgTemp
+        })
+        
+        console.log('📊 Updated metrics from backend data')
+        return
+      }
+    } catch (error) {
+      console.warn('⚠️ Backend not available, using mock data:', error)
+    }
+    
+    // Fallback to mock data if backend fails
+    console.log('🎭 Using fallback mock data')
     const mockData = {
       gpus: [
         {
