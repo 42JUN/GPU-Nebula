@@ -28,7 +28,7 @@ def get_topology():
     
     no_of_gpu_device = pynvml.nvmlDeviceGetCount()
 
-    
+    print("lmao")
     
         # Real GPU Detection 
     for i in range(no_of_gpu_device):
@@ -37,8 +37,7 @@ def get_topology():
             "id": f"GPU-{i}",
             "name": pynvml.nvmlDeviceGetName(handle).decode()
         })
-
-
+        
         # Check connectivity between GPU i and all others (j)
         for j in range(i + 1, no_of_gpu_device):
             peer_status = pynvml.nvmlDeviceGetP2PStatus(
