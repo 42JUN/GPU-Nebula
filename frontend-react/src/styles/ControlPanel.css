@@ -1,3 +1,4 @@
+
 .control-panel {
   background: rgba(15, 23, 42, 0.7);
   backdrop-filter: blur(20px);
@@ -12,6 +13,8 @@
   overflow: hidden;
   animation: slideInLeft 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+
 
 @keyframes slideInLeft {
   from {
@@ -134,6 +137,16 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
+  margin-bottom: 12px;
+}
+
+.refresh-btn.detect-btn {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.3);
+}
+
+.refresh-btn.detect-btn:hover {
+  box-shadow: 0 8px 25px 0 rgba(16, 185, 129, 0.4);
 }
 
 .refresh-btn::before {

@@ -101,17 +101,19 @@ function NetworkVisualization({ clusterData, onNodeSelect }) {
               'text-valign': 'center',
               'text-halign': 'center',
               'color': 'white',
-              'text-outline-width': 1,
-              'text-outline-color': '#000',
-              'width': 80,
-              'height': 60,
+              'text-outline-width': 2,
+              'text-outline-color': '#000000',
+              'width': 140,
+              'height': 100,
               'shape': 'round-rectangle',
-              'font-size': '10px',
-              'font-weight': 'bold',
-              'border-width': 2,
+              'font-size': '16px',
+              'font-family': 'Arial, sans-serif',
+              'border-width': 3,
               'border-color': '#059669',
               'text-wrap': 'wrap',
-              'text-max-width': '70px'
+              'text-max-width': '130px',
+              'text-margin-y': 2,
+              'text-margin-x': 2
             }
           },
           
@@ -125,16 +127,17 @@ function NetworkVisualization({ clusterData, onNodeSelect }) {
               'text-halign': 'center',
               'color': 'white',
               'text-outline-width': 1,
-              'text-outline-color': '#000',
-              'width': 100,
-              'height': 50,
+              'text-outline-color': '#000000',
+              'width': 160,
+              'height': 90,
               'shape': 'round-rectangle',
-              'font-size': '10px',
-              'font-weight': 'bold',
-              'border-width': 2,
+              'font-size': '16px',
+              'font-family': 'Arial, sans-serif',
               'border-color': '#1d4ed8',
               'text-wrap': 'wrap',
-              'text-max-width': '90px'
+              'text-max-width': '150px',
+              'text-margin-y': 2,
+              'text-margin-x': 2
             }
           },
           
@@ -142,17 +145,23 @@ function NetworkVisualization({ clusterData, onNodeSelect }) {
           {
             selector: 'edge',
             style: {
-              'width': 3,
+              'width': 4,
               'line-color': '#fbbf24',
               'target-arrow-color': '#fbbf24',
               'target-arrow-shape': 'triangle',
+              'target-arrow-size': 8,
               'curve-style': 'bezier',
               'label': 'data(label)',
-              'font-size': '8px',
+              'font-size': '10px',
+              'font-weight': 'bold',
+              'font-family': 'Arial, sans-serif',
               'color': '#fbbf24',
+              'text-outline-width': 1,
+              'text-outline-color': '#000000',
               'text-background-color': '#000',
-              'text-background-opacity': 0.7,
-              'text-background-padding': '2px'
+              'text-background-opacity': 0.8,
+              'text-background-padding': '4px',
+              'text-background-shape': 'roundrectangle'
             }
           },
           
