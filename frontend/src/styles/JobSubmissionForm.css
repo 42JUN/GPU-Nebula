@@ -1,0 +1,313 @@
+/* Job Submission Form Specific Styles */
+.job-submission-form {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+}
+
+.job-submission-form h3 {
+  color: white;
+  margin: 0 0 25px 0;
+  font-size: 1.5rem;
+  text-align: center;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.job-submission-form .form-group {
+  margin-bottom: 25px;
+}
+
+.job-submission-form .form-group label {
+  color: white;
+  font-weight: 600;
+  margin-bottom: 12px;
+  display: block;
+  font-size: 1.1rem;
+}
+
+/* Workload Type Selection */
+.workload-types {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin: 15px 0;
+}
+
+.workload-option {
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.workload-option:hover {
+  transform: translateY(-2px);
+}
+
+.workload-option input[type="radio"] {
+  display: none;
+}
+
+.workload-card {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  padding: 15px;
+  text-align: center;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.workload-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.workload-option input[type="radio"]:checked + .workload-card {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+}
+
+.workload-option input[type="radio"]:checked + .workload-card::before {
+  left: 100%;
+}
+
+.workload-card:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.workload-label {
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 8px;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.workload-desc {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.3;
+}
+
+/* Command Input Section */
+.command-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.example-btn {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.example-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.job-submission-form textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 15px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-family: 'Courier New', monospace;
+  font-size: 0.95rem;
+  resize: vertical;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.job-submission-form textarea::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.job-submission-form textarea:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+}
+
+/* Submit Button */
+.job-submission-form button[type="submit"] {
+  width: 100%;
+  background: linear-gradient(45deg, #ff6b6b, #feca57);
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 25px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  position: relative;
+  overflow: hidden;
+}
+
+.job-submission-form button[type="submit"]::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(45deg, #feca57, #ff9ff3);
+  transition: left 0.3s ease;
+  z-index: 1;
+}
+
+.job-submission-form button[type="submit"]:hover::before {
+  left: 0;
+}
+
+.job-submission-form button[type="submit"] span {
+  position: relative;
+  z-index: 2;
+}
+
+.job-submission-form button[type="submit"]:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+.job-submission-form button[type="submit"]:active {
+  transform: translateY(-1px);
+}
+
+.job-submission-form button[type="submit"]:disabled {
+  background: rgba(255, 255, 255, 0.2);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.job-submission-form button[type="submit"]:disabled::before {
+  display: none;
+}
+
+/* Loading Animation */
+.job-submission-form button[type="submit"]:disabled {
+  position: relative;
+}
+
+.job-submission-form button[type="submit"]:disabled::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  top: 50%;
+  left: 50%;
+  margin-left: -10px;
+  margin-top: -10px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .job-submission-form {
+    padding: 20px;
+    margin: 0 10px 20px 10px;
+  }
+  
+  .workload-types {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  
+  .command-header {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  
+  .example-btn {
+    align-self: flex-end;
+  }
+  
+  .job-submission-form button[type="submit"] {
+    padding: 12px 20px;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .job-submission-form {
+    padding: 15px;
+  }
+  
+  .workload-card {
+    padding: 12px;
+  }
+  
+  .workload-label {
+    font-size: 0.9rem;
+  }
+  
+  .workload-desc {
+    font-size: 0.8rem;
+  }
+}
+
+/* Animation for form appearance */
+.job-submission-form {
+  animation: slideInUp 0.6s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Success/Error states */
+.job-submission-form.success {
+  border: 2px solid #10b981;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+}
+
+.job-submission-form.error {
+  border: 2px solid #ef4444;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+}

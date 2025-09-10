@@ -1,0 +1,140 @@
+.job-scheduler {
+  background: #1e293b;
+  padding: 25px;
+  color: white;
+}
+
+.scheduler-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #334155;
+}
+
+.scheduler-header h3 {
+  margin: 0;
+  color: #f1f5f9;
+}
+
+.job-stats {
+  display: flex;
+  gap: 20px;
+  font-size: 0.9rem;
+  color: #94a3b8;
+}
+
+.job-form {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.command-input {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid #475569;
+  border-radius: 8px;
+  background: #0f172a;
+  color: white;
+  font-family: 'Courier New', monospace;
+}
+
+.submit-btn {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: transform 0.2s;
+}
+
+.submit-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.jobs-preview h4 {
+  color: #f1f5f9;
+  margin-bottom: 15px;
+}
+
+.jobs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.job-card {
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 12px;
+  transition: border-color 0.2s;
+}
+
+.job-card.running {
+  border-left: 3px solid #10b981;
+}
+
+.job-card.pending {
+  border-left: 3px solid #f59e0b;
+}
+
+.job-card.completed {
+  border-left: 3px solid #3b82f6;
+  opacity: 0.7;
+}
+
+.job-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+}
+
+.status {
+  text-transform: capitalize;
+  font-weight: 600;
+}
+
+.status.running { color: #10b981; }
+.status.pending { color: #f59e0b; }
+.status.completed { color: #3b82f6; }
+
+.job-gpu {
+  color: #10b981;
+  font-size: 0.8rem;
+  margin-bottom: 5px;
+}
+
+.job-command {
+  color: #94a3b8;
+  font-size: 0.75rem;
+  font-family: 'Courier New', monospace;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .job-form {
+    flex-direction: column;
+  }
+  
+  .scheduler-header {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  
+  .job-stats {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+}
