@@ -7,7 +7,11 @@ import platform
 import subprocess
 import json
 import os
+import re
 from typing import Dict, List, Optional, Any
+
+# Constants
+TEMPERATURE_THRESHOLD = 90  # Celsius
 
 class GPUDetector:
     def __init__(self):
@@ -19,7 +23,6 @@ class GPUDetector:
         """Main method to detect GPUs using multiple fallback methods"""
         print("🔍 Starting GPU Detection...")
         
-        # Try different detection methods in order of preference
         detection_methods = [
             self._detect_nvidia_nvml,
             self._detect_nvidia_smi,
@@ -42,7 +45,6 @@ class GPUDetector:
                 print(f"⚠️ {method.__name__} failed: {e}")
                 continue
         
-        # If all methods fail, return mock data
         print("🎭 All detection methods failed, using mock data")
         return self._get_mock_data()
     
@@ -52,57 +54,78 @@ class GPUDetector:
             import pynvml
             pynvml.nvmlInit()
             
+            driver_version = pynvml.nvmlSystemGetDriverVersion()
+            if isinstance(driver_version, bytes):
+                driver_version = driver_version.decode('utf-8')
+
             gpu_count = pynvml.nvmlDeviceGetCount()
             gpus = []
             
             for i in range(gpu_count):
                 handle = pynvml.nvmlDeviceGetHandleByIndex(i)
                 
-                # Get GPU name
                 name = pynvml.nvmlDeviceGetName(handle)
                 if isinstance(name, bytes):
                     name = name.decode('utf-8')
                 
-                # Get memory info
+                uuid = pynvml.nvmlDeviceGetUUID(handle)
+                if isinstance(uuid, bytes):
+                    uuid = uuid.decode('utf-8')
+
+                pci_info = pynvml.nvmlDeviceGetPciInfo(handle)
+                pci_bus_id = pci_info.busId
+                if isinstance(pci_bus_id, bytes):
+                    pci_bus_id = pci_bus_id.decode('utf-8')
+
+                serial = pynvml.nvmlDeviceGetSerial(handle)
+                if isinstance(serial, bytes):
+                    serial = serial.decode('utf-8')
+
                 memory_info = pynvml.nvmlDeviceGetMemoryInfo(handle)
                 
-                # Get temperature
                 try:
                     temp = pynvml.nvmlDeviceGetTemperature(handle, pynvml.NVML_TEMPERATURE_GPU)
-                except:
-                    temp = 65
+                except pynvml.NVMLError:
+                    temp = -1
                 
-                # Get power usage
+                status = "healthy"
+                if temp > TEMPERATURE_THRESHOLD:
+                    status = "overheating"
+
                 try:
                     power = pynvml.nvmlDeviceGetPowerUsage(handle) / 1000.0
-                except:
-                    power = 250.0
+                except pynvml.NVMLError:
+                    power = -1.0
                 
-                # Get utilization
                 try:
                     utilization = pynvml.nvmlDeviceGetUtilizationRates(handle)
                     gpu_util = utilization.gpu
                     mem_util = utilization.memory
-                except:
-                    gpu_util = 50
-                    mem_util = 40
+                except pynvml.NVMLError:
+                    gpu_util = -1
+                    mem_util = -1
                 
                 gpu_data = {
-                    "id": f"gpu-{i}",
+                    "id": uuid,
                     "name": f"GPU-{i}",
                     "model": str(name),
+                    "serial": serial,
+                    "pci_bus_id": pci_bus_id,
                     "type": "gpu",
-                    "status": "healthy",
+                    "status": status,
                     "temperature": temp,
                     "powerUsage": power,
                     "memoryUsed": memory_info.used,
                     "memoryTotal": memory_info.total,
                     "utilization": gpu_util,
                     "memoryUtilization": mem_util,
-                    "detection_method": "nvidia_nvml"
+                    "detection_method": "nvidia_nvml",
+                    "driver_version": driver_version
                 }
                 gpus.append(gpu_data)
             
+            pynvml.nvmlShutdown()
+
             return {
                 "gpus": gpus,
                 "servers": [self._get_host_server()],
@@ -115,7 +138,93 @@ class GPUDetector:
             raise Exception("pynvml not available")
         except Exception as e:
             raise Exception(f"NVML detection failed: {e}")
-    
+
+    def _get_nvidia_topology(self) -> Dict[str, Dict[str, str]]:
+        """Parse `nvidia-smi topo -m` to get GPU interconnects."""
+        try:
+            result = subprocess.run(['nvidia-smi', 'topo', '-m'], capture_output=True, text=True, timeout=10)
+            if result.returncode != 0:
+                return {}
+
+            lines = result.stdout.strip().split('\n')
+            header = re.split(r'\s+', lines[0].strip())[1:] # Skip the first column header
+            
+            topology = {}
+            for line in lines[1:]:
+                if not line.strip() or line.startswith('Legend'):
+                    continue
+                
+                parts = re.split(r'\s+', line.strip())
+                gpu_name = parts[0]
+                connections = parts[1:]
+                
+                if gpu_name not in topology:
+                    topology[gpu_name] = {}
+                
+                for i, conn_type in enumerate(connections):
+                    if i < len(header):
+                        topology[gpu_name][header[i]] = conn_type
+            
+            return topology
+        except (subprocess.TimeoutExpired, FileNotFoundError, Exception):
+            return {}
+
+    def _create_connections(self, gpus: List[Dict]) -> List[Dict[str, Any]]:
+        """Create connections between GPUs and server, using topology info if available."""
+        connections = []
+        for i, gpu in enumerate(gpus):
+            connections.append({
+                "id": f"conn-server-gpu-{i}",
+                "source": "server-0",
+                "target": gpu["id"],
+                "type": "pcie",
+                "bandwidth": "32 GB/s",
+                "status": "active"
+            })
+
+        # Use nvidia-smi topo -m for GPU-to-GPU connections if possible
+        topology = self._get_nvidia_topology()
+        gpu_map = {f"GPU{i}": gpu["id"] for i, gpu in enumerate(gpus)}
+
+        if topology:
+            for i in range(len(gpus)):
+                for j in range(i + 1, len(gpus)):
+                    gpu1_name = f"GPU{i}"
+                    gpu2_name = f"GPU{j}"
+                    conn_type = topology.get(gpu1_name, {}).get(gpu2_name)
+
+                    if conn_type and conn_type != "X":
+                        bandwidth = "Unknown"
+                        if conn_type.startswith("NV"):
+                            bandwidth = f"{int(conn_type[2:]) * 50} GB/s" # Rough estimate for NVLink
+                        elif conn_type == "PXB" or conn_type == "PIX":
+                            bandwidth = "16 GB/s"
+                        elif conn_type == "SYS" or conn_type == "NODE":
+                            bandwidth = "8 GB/s"
+
+                        connections.append({
+                            "id": f"conn-gpu-{i}-{j}",
+                            "source": gpu_map[gpu1_name],
+                            "target": gpu_map[gpu2_name],
+                            "type": conn_type,
+                            "bandwidth": bandwidth,
+                            "status": "active"
+                        })
+        else: # Fallback to the old method
+            for i in range(len(gpus)):
+                for j in range(i + 1, len(gpus)):
+                    connections.append({
+                        "id": f"conn-gpu-{i}-{j}",
+                        "source": gpus[i]["id"],
+                        "target": gpus[j]["id"],
+                        "type": "nvlink" if "nvidia" in gpus[i]["model"].lower() else "pcie",
+                        "bandwidth": "600 GB/s" if "nvlink" in connections[-1]["type"] else "32 GB/s",
+                        "status": "active"
+                    })
+        
+        return connections
+
+    # ... (the rest of the class remains the same for now)
     def _detect_nvidia_smi(self) -> Optional[Dict[str, Any]]:
         """Detect NVIDIA GPUs using nvidia-smi command"""
         try:
@@ -327,34 +436,6 @@ class GPUDetector:
             "uptime": "99.9%",
             "os": f"{platform.system()} {platform.release()}"
         }
-    
-    def _create_connections(self, gpus: List[Dict]) -> List[Dict[str, Any]]:
-        """Create connections between GPUs and server"""
-        connections = []
-        
-        for i, gpu in enumerate(gpus):
-            connections.append({
-                "id": f"conn-server-gpu-{i}",
-                "source": "server-0",
-                "target": gpu["id"],
-                "type": "pcie",
-                "bandwidth": "32 GB/s",
-                "status": "active"
-            })
-        
-        # Add GPU-to-GPU connections if multiple GPUs
-        for i in range(len(gpus)):
-            for j in range(i + 1, len(gpus)):
-                connections.append({
-                    "id": f"conn-gpu-{i}-{j}",
-                    "source": gpus[i]["id"],
-                    "target": gpus[j]["id"],
-                    "type": "nvlink" if "nvidia" in gpus[i]["model"].lower() else "pcie",
-                    "bandwidth": "600 GB/s" if "nvlink" in connections[-1]["type"] else "32 GB/s",
-                    "status": "active"
-                })
-        
-        return connections
     
     def _get_mock_data(self) -> Dict[str, Any]:
         """Return mock data when real detection fails"""

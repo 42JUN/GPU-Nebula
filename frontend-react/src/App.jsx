@@ -29,47 +29,46 @@ function App() {
     setSelectedNode(nodeData)
   }
 
-  const handleRefreshTopology = () => {
+  const handleRefreshTopology = async () => {
     console.log('Refreshing topology...')
     setSelectedNode(null)
-    
-    // FIXED: Moved setTimeout inside the function
-    setTimeout(() => {
-      console.log('Refresh complete')
-    }, 1000)
+    await loadData()
   }
 
   // FIXED: useEffect (was "useEffects" - typo)
   useEffect(() => {
     console.log('Component mounted - running initial setup')
-    loadMockData()
+    loadData()
   }, [])
 
-  const loadMockData = async () => {
+  const loadData = async () => {
     try {
       console.log('🔄 Attempting to fetch data from backend...')
       
       // Try to fetch from backend first
-      const response = await fetch('http://localhost:8000/topology')
+      const response = await fetch('http://localhost:8000/api/v1/topology')
       
       if (response.ok) {
         const backendData = await response.json()
         console.log('✅ Successfully fetched data from backend:', backendData)
         
-        // Use backend data if available
+        // Process backend data to fit frontend state structure
+        const gpus = backendData.nodes?.filter(node => node.type === 'gpu') || [];
+        const servers = backendData.nodes?.filter(node => node.type === 'server') || [];
+
         setClusterData({
-          gpus: backendData.gpus || [],
-          servers: backendData.servers || [],
+          gpus: gpus,
+          servers: servers,
           connections: backendData.connections || []
         })
         
         // Calculate metrics from backend data
-        const avgTemp = backendData.gpus?.length > 0 
-          ? Math.round(backendData.gpus.reduce((sum, gpu) => sum + (gpu.temperature || 0), 0) / backendData.gpus.length)
+        const avgTemp = gpus.length > 0 
+          ? Math.round(gpus.reduce((sum, gpu) => sum + (gpu.temperature || 0), 0) / gpus.length)
           : 0
         
         setMetrics({
-          totalGpus: backendData.gpus?.length || 0,
+          totalGpus: gpus.length || 0,
           activeConnections: backendData.connections?.length || 0,
           avgTemperature: avgTemp
         })
@@ -135,11 +134,17 @@ function App() {
         }
       ],
       connections: [
-        { id: 'conn-1', source: 'gpu-0', target: 'gpu-1', type: 'nvlink' },
-        { id: 'conn-2', source: 'gpu-1', target: 'gpu-2', type: 'nvlink' },
-        { id: 'conn-3', source: 'gpu-2', target: 'gpu-3', type: 'nvlink' },
-        // FIXED: 'server-' was incomplete, should be 'server-2'
-        { id: 'conn-4', source: 'server-1', target: 'server-2', type: 'infiniband' }
+        // GPUs on Server 1
+        { id: 'conn-s1-g0', source: 'server-1', target: 'gpu-0', type: 'pcie' },
+        { id: 'conn-s1-g1', source: 'server-1', target: 'gpu-1', type: 'pcie' },
+        // GPUs on Server 2
+        { id: 'conn-s2-g2', source: 'server-2', target: 'gpu-2', type: 'pcie' },
+        { id: 'conn-s2-g3', source: 'server-2', target: 'gpu-3', type: 'pcie' },
+        // Inter-GPU links
+        { id: 'conn-g0-g1', source: 'gpu-0', target: 'gpu-1', type: 'nvlink' },
+        { id: 'conn-g2-g3', source: 'gpu-2', target: 'gpu-3', type: 'nvlink' },
+        // Inter-server link
+        { id: 'conn-s1-s2', source: 'server-1', target: 'server-2', type: 'infiniband' }
       ]
     }
 
