@@ -30,6 +30,16 @@
   gap: 15px;
   margin-bottom: 25px;
 }
+.workload-select {
+  padding: 12px;
+  border: 1px solid #475569;
+  border-radius: 8px;
+  background: #0f172a;
+  color: white;
+  font-family: inherit;
+  cursor: pointer;
+}
+
 
 .command-input {
   flex: 1;

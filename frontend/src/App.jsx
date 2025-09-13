@@ -6,6 +6,8 @@ import InfoPanel from './components/InfoPanel'
 import JobManagement from './components/JobManagement'
 import './styles/App.css'
 
+const API_BASE_URL = `http://${window.location.hostname}:8080`;
+
 function App() {
   const [selectedNode, setSelectedNode] = useState(null)
   const [clusterData, setClusterData] = useState({
@@ -39,7 +41,9 @@ function App() {
   const loadData = async () => {
     try {
       console.log('🔄 Attempting to fetch data from backend...')
-      const response = await fetch('http://localhost:8080/api/v1/topology')
+      const response = await fetch(`${API_BASE_URL}/api/v1/topology`, {
+        cache: 'no-store' // Tell the browser to always get a fresh response
+      })
 
       if (response.ok) {
         const backendData = await response.json()

@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import '../styles/ControlPanel.css'
 
+const API_BASE_URL = `http://${window.location.hostname}:8080`;
+
 function ControlPanel({ onRefresh, metrics }) {
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [selfGpu, setSelfGpu] = useState(null)
@@ -19,7 +21,7 @@ function ControlPanel({ onRefresh, metrics }) {
       setIsDetecting(true)
       
       // First, force detection and save to database
-      const detectRes = await fetch('http://localhost:8080/gpu/detect', {
+      const detectRes = await fetch(`${API_BASE_URL}/gpu/detect`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -30,12 +32,17 @@ function ControlPanel({ onRefresh, metrics }) {
       
       if (detectData.status === 'success') {
         // Get the detected GPU info
-        const res = await fetch('http://localhost:8080/gpu/self')
+        const res = await fetch(`${API_BASE_URL}/gpu/self`, {
+          cache: 'no-store'
+        })
         const data = await res.json()
         setSelfGpu(data.gpu || null)
         
         // Show success message
         alert(`✅ Successfully detected and saved ${detectData.gpus.length} GPU(s)!\nMethod: ${detectData.detection_method}`)
+        
+        // Refresh the main topology view to show the new node
+        onRefresh()
       } else {
         alert(`❌ Detection failed: ${detectData.message}`)
         setSelfGpu(null)

@@ -3,11 +3,14 @@ import psutil
 import json
 import os
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, Dict
 from sqlalchemy.orm import Session
 from create_db import Job, GPU, Agent, History, engine, SessionLocal
+import requests
 
 class JobScheduler:
+    AGENT_PORT = 8001
+
     def __init__(self):
         self.session_factory = SessionLocal
     
@@ -160,18 +163,32 @@ class JobScheduler:
         
         return total_score
     
-    def _is_local_gpu(self, db: Session, gpu: GPU) -> bool:
-        """Check if GPU belongs to local agent"""
+    def _is_local_agent(self, db: Session, agent_id: int) -> bool:
+        """
+        Check if the agent_id corresponds to an agent running on the local machine.
+        This is more robust than checking for a single hostname.
+        """
         import socket
         hostname = socket.gethostname()
-        local_agent = db.query(Agent).filter(Agent.hostname == hostname).first()
-        return local_agent and gpu.agent_id == local_agent.id
+        # An agent is local if its hostname contains the local machine's hostname.
+        # This covers both the main agent and the self-detected agent.
+        agent = db.query(Agent).filter(Agent.id == agent_id).first()
+        if not agent:
+            return False
+        return hostname in agent.hostname
+
+    def _is_local_gpu(self, db: Session, gpu: GPU) -> bool:
+        return self._is_local_agent(db, gpu.agent_id)
     
     def _launch_local_job(self, db: Session, job: Job, gpu: GPU) -> bool:
         """Launch job on local GPU using subprocess"""
         try:
-            # Extract GPU index 
-            gpu_index = self._get_gpu_index_from_db(gpu)
+            import shlex
+            # Extract GPU index from its ID (e.g., "GPU-0" -> 0)
+            try:
+                gpu_index = int(gpu.id.split('-')[-1])
+            except (ValueError, IndexError):
+                gpu_index = 0  # Fallback
             
             # Set CUDA device and launch
             env = {
@@ -180,8 +197,8 @@ class JobScheduler:
             }
             
             process = subprocess.Popen(
-                job.command,
-                shell=True,
+                shlex.split(job.command),
+                shell=False,  # Important for security
                 env=env,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
@@ -229,16 +246,6 @@ class JobScheduler:
             print(f"Failed to launch remote job: {e}")
             return False
     
-    def _get_gpu_index_from_db(self, gpu: GPU) -> int:
-        """Get GPU index for CUDA_VISIBLE_DEVICES"""
-        if gpu.pci_bus_id and ":" in gpu.pci_bus_id:
-            try:
-                parts = gpu.pci_bus_id.split(":")
-                return int(parts[1], 16) - 1
-            except:
-                pass
-        return 0
-    
     def _log_job_history(self, db: Session, job_id: int, action: str, details: str):
         """Log job event to history"""
         history = History(
@@ -250,23 +257,50 @@ class JobScheduler:
         db.commit()
     
     def monitor_jobs(self):
-        """Background task to monitor running jobs"""
+        """Background task to monitor running jobs, both local and remote."""
         db = self.session_factory()
         try:
             running_jobs = db.query(Job).filter(Job.status == "running").all()
             
             for job in running_jobs:
-                if job.pid:
+                if not job.pid:
+                    continue
+
+                is_local = self._is_local_agent(db, job.agent_id)
+
+                if is_local:
+                    # Monitor local job using psutil
                     try:
                         process = psutil.Process(job.pid)
                         if not process.is_running():
                             job.status = "completed"
                             job.finished_at = datetime.now()
-                            self._log_job_history(db, job.id, "completed", "Job finished successfully")
+                            self._log_job_history(db, job.id, "completed", "Job process finished.")
                     except psutil.NoSuchProcess:
-                        job.status = "failed"
+                        job.status = "completed"  # Assume completed if process is gone
                         job.finished_at = datetime.now()
-                        self._log_job_history(db, job.id, "failed", "Process not found")
+                        self._log_job_history(db, job.id, "completed", "Job process not found, assuming completed.")
+                else:
+                    # Monitor remote job via agent's API
+                    agent = job.agent
+                    if not agent:
+                        continue
+                    
+                    try:
+                        response = requests.get(
+                            f"http://{agent.ip_address}:{self.AGENT_PORT}/agent/job-status/{job.pid}",
+                            timeout=5
+                        )
+                        if response.status_code == 200:
+                            status_data = response.json()
+                            if status_data.get("status") in ["not_running", "not_found"]:
+                                job.status = "completed"
+                                job.finished_at = datetime.now()
+                                self._log_job_history(db, job.id, "completed", f"Remote job finished on {agent.hostname}.")
+                        else:
+                            print(f"⚠️ Could not get job status for {job.id} from agent {agent.hostname}. Status: {response.status_code}")
+                    except requests.RequestException as e:
+                        print(f"⚠️ Error contacting agent {agent.hostname} to monitor job {job.id}: {e}")
             
             db.commit()
         finally:

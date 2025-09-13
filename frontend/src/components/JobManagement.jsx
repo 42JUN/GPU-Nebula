@@ -1,14 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/JobManagement.css';
 
+const API_BASE_URL = `http://${window.location.hostname}:8080`;
+
 const JobManagement = ({ clusterData }) => {
   const [jobs, setJobs] = useState([]);
   const [command, setCommand] = useState('');
+  const [workloadType, setWorkloadType] = useState('inference');
   const [loading, setLoading] = useState(false);
 
   const fetchJobs = async () => {
     try {
-      const response = await fetch('/api/v1/jobs');
+      const response = await fetch(`${API_BASE_URL}/api/v1/jobs`, {
+        cache: 'no-store'
+      });
       const data = await response.json();
       setJobs(data.jobs || []);
     } catch (error) {
@@ -21,11 +26,11 @@ const JobManagement = ({ clusterData }) => {
     setLoading(true);
     
     try {
-      const response = await fetch('/api/v1/jobs/submit', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/jobs/submit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          workload_type: 'task', 
+          workload_type: workloadType, 
           command: command
         })
       });
@@ -65,6 +70,17 @@ const JobManagement = ({ clusterData }) => {
       
       <div className="scheduler-content">
         <form onSubmit={handleSubmit} className="job-form">
+          <select 
+            value={workloadType} 
+            onChange={(e) => setWorkloadType(e.target.value)}
+            className="workload-select"
+          >
+            <option value="inference">🔮 Inference</option>
+            <option value="training">🎯 Training</option>
+            <option value="fine-tuning">⚡ Fine-tuning</option>
+            <option value="testing">🧪 Testing</option>
+            <option value="data-processing">📊 Data Processing</option>
+          </select>
           <input
             type="text"
             value={command}

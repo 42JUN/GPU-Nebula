@@ -1,11 +1,13 @@
 import React from 'react';
 
+const API_BASE_URL = `http://${window.location.hostname}:8080`;
+
 const JobsList = ({ jobs, onJobAction }) => {
   const cancelJob = async (jobId) => {
     if (!confirm('Are you sure you want to cancel this job?')) return;
     
     try {
-      const response = await fetch(`/api/v1/jobs/${jobId}/cancel`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/jobs/${jobId}/cancel`, {
         method: 'POST'
       });
       

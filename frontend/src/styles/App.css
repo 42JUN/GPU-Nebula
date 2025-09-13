@@ -1,40 +1,82 @@
 /*
-  This CSS provides a fully responsive layout for the GPU Nebula application.
-  - It uses a flexible grid with 'minmax()' to adapt to various screen sizes.
-  - It introduces clear breakpoints to adjust and stack panels on smaller screens.
-  - It allows the page to scroll vertically and scale horizontally without cutting off content.
+  Enhanced CSS for GPU Nebula application with improved responsiveness and legibility.
+  - Uses modern fluid typography and spacing scales
+  - Implements progressive enhancement with better breakpoint strategy
+  - Optimized for readability across all device sizes
+  - Maintains visual hierarchy and accessibility standards
 */
 
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  /* Applying a general transition for all elements. For performance, consider
-     targeting specific elements that need transitions. */
+}
+
+/* Only apply transitions to interactive elements for better performance */
+a, button, input, select, textarea,
+[role="button"], [tabindex]:not([tabindex="-1"]) {
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-html, body {
+/* CSS Custom Properties for consistent theming and easy maintenance */
+:root {
+  /* Fluid typography scale */
+  --text-xs: clamp(0.75rem, 0.7rem + 0.2vw, 0.875rem);
+  --text-sm: clamp(0.875rem, 0.8rem + 0.3vw, 1rem);
+  --text-base: clamp(1rem, 0.9rem + 0.4vw, 1.125rem);
+  --text-lg: clamp(1.125rem, 1rem + 0.5vw, 1.25rem);
+  --text-xl: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
+  --text-2xl: clamp(1.5rem, 1.3rem + 0.8vw, 2rem);
+  
+  /* Fluid spacing scale */
+  --space-xs: clamp(0.5rem, 0.4rem + 0.3vw, 0.75rem);
+  --space-sm: clamp(0.75rem, 0.6rem + 0.5vw, 1rem);
+  --space-md: clamp(1rem, 0.8rem + 0.8vw, 1.5rem);
+  --space-lg: clamp(1.5rem, 1.2rem + 1.2vw, 2rem);
+  --space-xl: clamp(2rem, 1.6rem + 1.6vw, 3rem);
+  
+  /* Colors with better contrast ratios */
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #0f172a;
+  --bg-tertiary: #1e293b;
+  --text-primary: #ffffff;
+  --text-secondary: #e2e8f0;
+  --text-muted: #94a3b8;
+  
+  /* Enhanced gradients */
+  --gradient-main: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+  --gradient-overlay: 
+    radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 40% 60%, rgba(16, 185, 129, 0.04) 0%, transparent 50%);
+}
+
+html {
+  font-size: 100%; /* Respects user's browser font size preferences */
+  scroll-behavior: smooth;
+}
+
+body {
   margin: 0;
   padding: 0;
-  height: 100%;
+  min-height: 100vh;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: #0a0a0a;
-  color: #ffffff;
+  font-size: var(--text-base);
+  background: var(--bg-primary);
+  color: var(--text-primary);
   line-height: 1.6;
-  /* Prevents horizontal scrolling, which is good for a full-width layout */
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #root, .app {
-  /* Use min-height to ensure the page fills the viewport but can grow with content */
   min-height: 100vh;
-  width: 100vw;
+  width: 100%;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+  background: var(--gradient-main);
   position: relative;
-  /* Allow vertical scrolling on the main app container if content overflows */
   overflow-y: auto;
 }
 
@@ -45,50 +87,121 @@ html, body {
   left: 0;
   width: 100%;
   height: 100%;
-  background: 
-    radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 40% 60%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
+  background: var(--gradient-overlay);
   pointer-events: none;
   z-index: -1;
 }
 
-/* This is the main content wrapper. We'll define a flexible grid here that
-  will be adjusted by the media queries below.
-*/
+/* Enhanced main content with better responsive grid */
 .main-content {
   flex: 1;
   display: grid;
-  
-  /* DEFAULT LAYOUT (for ultra-wide screens, >1920px) */
-  grid-template-columns: 320px 1fr 360px;
-  grid-template-rows: auto;
-  
-  gap: 24px;
-  padding: 24px;
-  /* Removed max-width to allow the layout to scale infinitely on wide screens */
+  gap: var(--space-lg);
+  padding: var(--space-lg);
   margin: 0 auto;
   width: 100%;
-  animation: fadeInUp 0.8s ease-out;
+  max-width: 1800px; /* Prevents excessive stretching on very wide screens */
+  
+  /* Mobile-first grid that progressively enhances */
+  grid-template-columns: 1fr;
+  grid-template-rows: auto;
+  
+  animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Progressive enhancement for larger screens */
+@media (min-width: 768px) {
+  .main-content {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (min-width: 1200px) {
+  .main-content {
+    grid-template-columns: minmax(300px, 1fr) minmax(500px, 2fr) minmax(320px, 1fr);
+  }
+}
+
+@media (min-width: 1600px) {
+  .main-content {
+    grid-template-columns: minmax(320px, 360px) minmax(600px, 1fr) minmax(340px, 380px);
+  }
 }
 
 .scheduler-section {
-  background: #0f172a;
-  margin: 0 20px 20px 20px;
-  border-radius: 12px;
+  background: var(--bg-secondary);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  backdrop-filter: blur(8px);
+  
+  /* Improved padding scale */
+  padding: var(--space-md);
 }
 
+@media (min-width: 768px) {
+  .scheduler-section {
+    padding: var(--space-lg);
+  }
+}
+
+/* Enhanced content sections */
 .main-content > * {
-  border-radius: 12px;
+  border-radius: 16px;
+  background: var(--bg-secondary);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  padding: var(--space-md);
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+@media (min-width: 768px) {
+  .main-content > * {
+    padding: var(--space-lg);
+  }
+}
+
+/* Typography improvements for better readability */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-primary);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.25;
+  margin-bottom: var(--space-sm);
+}
+
+h1 { font-size: var(--text-2xl); }
+h2 { font-size: var(--text-xl); }
+h3 { font-size: var(--text-lg); }
+h4 { font-size: var(--text-base); }
+
+p, li {
+  color: var(--text-secondary);
+  margin-bottom: var(--space-sm);
+  max-width: 65ch; /* Optimal reading width */
+}
+
+small {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+/* Focus styles for accessibility */
+:focus-visible {
+  outline: 2px solid rgba(59, 130, 246, 0.6);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 /* Animations */
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(30px);
   }
   to {
     opacity: 1;
@@ -96,59 +209,77 @@ html, body {
   }
 }
 
-/*
-  Responsive Breakpoints:
-  This is the key to an "absolutely responsive" design. It adjusts the layout
-  based on screen size to prevent cramping and improve readability.
-*/
-
-/* Layout for common desktop and larger laptop screens */
-@media (min-width: 1401px) and (max-width: 1920px) {
-  .main-content {
-    grid-template-columns: 280px 2fr 300px;
-    gap: 20px;
-    padding: 20px;
-  }
-}
-
-/* Layout for most laptops and tablets. Switches to a single-column layout. */
-@media (max-width: 1400px) {
-  .main-content {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto auto auto;
-    gap: 16px;
-    padding: 16px;
-  }
-  .scheduler-section {
-    margin: 10px;
-  }
-}
-
-/* Further compaction for smaller screens (e.g., phones) */
-@media (max-width: 768px) {
-  .main-content {
-    padding: 12px;
-    gap: 12px;
-  }
-}
-
-/* Custom scrollbar styles for a polished look */
+/* Enhanced scrollbar with better contrast */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 12px;
+  height: 12px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.4);
-  border-radius: 4px;
+  background: var(--bg-secondary);
+  border-radius: 6px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.3);
-  border-radius: 4px;
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 6px;
+  border: 2px solid var(--bg-secondary);
   transition: background 0.2s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.5);
+  background: rgba(148, 163, 184, 0.6);
+}
+
+::-webkit-scrollbar-corner {
+  background: var(--bg-secondary);
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --text-primary: #ffffff;
+    --text-secondary: #f1f5f9;
+    --text-muted: #cbd5e1;
+  }
+  
+  .main-content > *,
+  .scheduler-section {
+    border: 2px solid rgba(148, 163, 184, 0.3);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* Print styles */
+@media print {
+  .app::before {
+    display: none;
+  }
+  
+  .main-content {
+    background: white;
+    color: black;
+    box-shadow: none;
+  }
+  
+  .main-content > *,
+  .scheduler-section {
+    background: white;
+    border: 1px solid #ccc;
+    box-shadow: none;
+  }
 }
