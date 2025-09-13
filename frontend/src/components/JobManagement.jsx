@@ -55,11 +55,11 @@ const JobManagement = ({ clusterData }) => {
   return (
     <div className="job-scheduler">
       <div className="scheduler-header">
-        <h3>🎯 GPU Workload Scheduler</h3>
+        <h3>GPU Workload Scheduler</h3>
         <div className="job-stats">
-          <span>📊 Total: {jobs.length}</span>
-          <span>🏃‍♂️ Running: {jobs.filter(j => j.status === 'running').length}</span>
-          <span>⏳ Queued: {jobs.filter(j => j.status === 'queued').length}</span>
+          <span>Total: {jobs.length}</span>
+          <span>Running: {jobs.filter(j => j.status === 'running').length}</span>
+          <span>Queued: {jobs.filter(j => j.status === 'queued').length}</span>
         </div>
       </div>
       
@@ -74,7 +74,7 @@ const JobManagement = ({ clusterData }) => {
             required
           />
           <button type="submit" disabled={loading} className="submit-btn">
-            {loading ? '⏳ Assigning...' : '🚀 Assign to GPU'}
+            {loading ? '⏳ Assigning...' : ' Assign to GPU'}
           </button>
         </form>
 

@@ -3,10 +3,12 @@ import requests
 import json
 from datetime import datetime
 from typing import Dict, Any
+import sys
+import uuid
 
 # Assuming the backend is accessible at this URL
 # In a real deployment, this would be configurable
-BACKEND_URL = "http://localhost:8000" # Or the Docker service name if agents are in the same Docker network
+BACKEND_URL = "http://localhost:8080" # Or the Docker service name if agents are in the same Docker network
 
 def register_agent(gpu_details: Dict[str, Any]) -> Dict[str, Any]:
     """Registers the GPU agent with the central control plane."""
@@ -28,15 +30,21 @@ def send_gpu_metrics(gpu_id: int, metrics: Dict[str, Any]):
         print(f"Error sending metrics for GPU {gpu_id}: {e}")
 
 def main():
+    # Take a unique ID from command line argument, or generate a random one
+    if len(sys.argv) > 1:
+        agent_id = sys.argv[1]
+    else:
+        agent_id = str(uuid.uuid4())[:8]
+		
     # Placeholder for actual GPU discovery
     # In a real scenario, this would use backend/app/services/gpu_discovery.py
     # For now, let's mock some GPU details
     mock_gpu_details = {
-        "uuid": "GPU-MOCK-1234-5678-90AB-CDEF",
-        "name": "Mock GPU",
+        "uuid": f"GPU-MOCK-{agent_id}",
+        "name": f"Mock GPU {agent_id}",
         "vendor": "MockCorp",
         "model": "MockModel",
-        "serial": "MOCKSERIAL123",
+        "serial": f"MOCKSERIAL{agent_id}",
         "driver_version": "1.0.0",
         "cuda_version": "11.0",
         "compute_capability": "8.0",

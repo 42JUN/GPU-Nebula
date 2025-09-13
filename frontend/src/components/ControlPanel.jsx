@@ -30,7 +30,7 @@ function ControlPanel({ onRefresh, metrics }) {
       
       if (detectData.status === 'success') {
         // Get the detected GPU info
-        const res = await fetch('http://localhost:8000/gpu/self')
+        const res = await fetch('http://localhost:8080/gpu/self')
         const data = await res.json()
         setSelfGpu(data.gpu || null)
         

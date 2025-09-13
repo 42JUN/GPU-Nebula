@@ -1,7 +1,17 @@
+/*
+  This CSS provides a fully responsive layout for the GPU Nebula application.
+  - It uses a flexible grid with 'minmax()' to adapt to various screen sizes.
+  - It introduces clear breakpoints to adjust and stack panels on smaller screens.
+  - It allows the page to scroll vertically and scale horizontally without cutting off content.
+*/
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  /* Applying a general transition for all elements. For performance, consider
+     targeting specific elements that need transitions. */
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 html, body {
@@ -12,22 +22,20 @@ html, body {
   background: #0a0a0a;
   color: #ffffff;
   line-height: 1.6;
+  /* Prevents horizontal scrolling, which is good for a full-width layout */
   overflow-x: hidden;
 }
 
-#root {
-  height: 100vh;
-  width: 100vw;
-}
-
-.app {
-  height: 100vh;
+#root, .app {
+  /* Use min-height to ensure the page fills the viewport but can grow with content */
+  min-height: 100vh;
   width: 100vw;
   display: flex;
   flex-direction: column;
   background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
   position: relative;
-  overflow: hidden;
+  /* Allow vertical scrolling on the main app container if content overflows */
+  overflow-y: auto;
 }
 
 .app::before {
@@ -45,21 +53,38 @@ html, body {
   z-index: -1;
 }
 
+/* This is the main content wrapper. We'll define a flexible grid here that
+  will be adjusted by the media queries below.
+*/
 .main-content {
   flex: 1;
   display: grid;
+  
+  /* DEFAULT LAYOUT (for ultra-wide screens, >1920px) */
   grid-template-columns: 320px 1fr 360px;
-  grid-template-rows: 1fr;
+  grid-template-rows: auto;
+  
   gap: 24px;
   padding: 24px;
-  height: calc(100vh - 80px); /* Account for header height */
-  max-width: 1920px;
+  /* Removed max-width to allow the layout to scale infinitely on wide screens */
   margin: 0 auto;
   width: 100%;
   animation: fadeInUp 0.8s ease-out;
-  overflow: hidden;
 }
 
+.scheduler-section {
+  background: #0f172a;
+  margin: 0 20px 20px 20px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.main-content > * {
+  border-radius: 12px;
+}
+
+/* Animations */
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -71,65 +96,43 @@ html, body {
   }
 }
 
-.panel-title {
-  color: #f8fafc;
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 24px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
-  position: relative;
-}
+/*
+  Responsive Breakpoints:
+  This is the key to an "absolutely responsive" design. It adjusts the layout
+  based on screen size to prevent cramping and improve readability.
+*/
 
-.panel-title::before {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 0;
-  width: 40px;
-  height: 2px;
-  background: linear-gradient(90deg, #3b82f6, #8b5cf6);
-  border-radius: 1px;
-}
-
-/* Responsive Design */
-@media (max-width: 1400px) {
+/* Layout for common desktop and larger laptop screens */
+@media (min-width: 1401px) and (max-width: 1920px) {
   .main-content {
-    grid-template-columns: 280px 1fr 320px;
+    grid-template-columns: 280px 2fr 300px;
     gap: 20px;
     padding: 20px;
-    height: calc(100vh - 80px);
   }
 }
 
-@media (max-width: 1200px) {
+/* Layout for most laptops and tablets. Switches to a single-column layout. */
+@media (max-width: 1400px) {
   .main-content {
     grid-template-columns: 1fr;
-    grid-template-rows: auto auto 1fr;
+    grid-template-rows: auto auto auto;
     gap: 16px;
     padding: 16px;
-    height: calc(100vh - 80px);
-    overflow-y: auto;
+  }
+  .scheduler-section {
+    margin: 10px;
   }
 }
 
+/* Further compaction for smaller screens (e.g., phones) */
 @media (max-width: 768px) {
   .main-content {
     padding: 12px;
     gap: 12px;
-    height: calc(100vh - 60px);
   }
 }
 
-/* Smooth transitions for all interactive elements */
-* {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Custom scrollbar */
+/* Custom scrollbar styles for a polished look */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -148,54 +151,4 @@ html, body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(148, 163, 184, 0.5);
-}
-
-/* Add these styles to your existing App.css */
-
-.app {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-.main-content {
-  display: grid;
-  grid-template-columns: 300px 1fr 350px; /* Left panel, center, right panel */
-  gap: 20px;
-  padding: 20px;
-  flex: 0 0 auto; /* Don't grow, maintain fixed height */
-  height: calc(100vh - 140px); /* Adjust based on your header height */
-}
-
-.scheduler-section {
-  background: #0f172a;
-  margin: 0 20px 20px 20px;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-/* Ensure panels don't overflow */
-.main-content > * {
-  overflow: hidden;
-  border-radius: 12px;
-}
-
-/* Responsive adjustments */
-@media (max-width: 1200px) {
-  .main-content {
-    grid-template-columns: 280px 1fr 320px;
-  }
-}
-
-@media (max-width: 768px) {
-  .main-content {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto auto auto;
-    height: auto;
-  }
-  
-  .scheduler-section {
-    margin: 10px;
-  }
 }

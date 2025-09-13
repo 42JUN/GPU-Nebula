@@ -36,7 +36,6 @@
 
 .info-content {
   margin-bottom: 24px;
-  min-height: 250px;
 }
 
 .no-selection {
@@ -44,13 +43,18 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 250px;
+  height: 100%;
   text-align: center;
   background: rgba(255, 255, 255, 0.02);
   border: 2px dashed rgba(148, 163, 184, 0.2);
   border-radius: 12px;
   transition: all 0.3s ease;
   animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .no-selection:hover {
